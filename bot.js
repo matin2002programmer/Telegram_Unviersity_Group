@@ -186,7 +186,10 @@ bot.on('message', async (ctx) => {
 
         if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
             // Remove the user's permissions to send messages in the chat
-            let endOfDay = new Date(year, now.getMonth(), now.getDate() + 1);
+            let endOfDay = new Date(now.toLocaleString('en-US', { ...options, year: 'numeric', month: 'numeric', day: 'numeric' }));
+            endOfDay.setHours(23);
+            endOfDay.setMinutes(59);
+            endOfDay.setSeconds(59);
             await ctx.telegram.restrictChatMember(chatId, userId, {
                 can_send_messages: false,
                 can_send_media_messages: false,
