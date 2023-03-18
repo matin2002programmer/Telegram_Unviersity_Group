@@ -81,7 +81,6 @@ bot.on('message', async (ctx) => {
         if (err) {
             console.error(err.message);
         }
-        console.log('Connected to the users database.');
     });
 
     // Create the users table if it doesn't exist
@@ -93,7 +92,6 @@ bot.on('message', async (ctx) => {
         if (err) {
             console.error(err.message);
         }
-        console.log('Created the users table.');
     });
     const userName = member.user.first_name;
     const userChatId = member.user.id;
@@ -187,7 +185,7 @@ bot.on('message', async (ctx) => {
 
         if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
             // Remove the user's permissions to send messages in the chat
-            let endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            let endOfDay = new Date(iranDateTime.getFullYear(), iranDateTime.getMonth(), iranDateTime.getDate() + 1);
             await ctx.telegram.restrictChatMember(chatId, userId, {
                 can_send_messages: false,
                 can_send_media_messages: false,
@@ -240,7 +238,7 @@ bot.on('message', async (ctx) => {
             }
         }
         // Check if the message is a reply to a previous message
-        else if (ctx.message.reply_to_message) {
+        if (ctx.message.reply_to_message) {
             const replyText = ctx.message.text;
 
             // Check if the reply text is "حذف محدودیت"
