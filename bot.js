@@ -181,17 +181,17 @@ bot.on('message', async (ctx) => {
         else if (!messageLimitEnabled) {
             return;
         }
-
+        console.log("Yes");
         if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
             // Remove the user's permissions to send messages in the chat
-            let endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - 12600000;
+            let endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
             await ctx.telegram.restrictChatMember(chatId, userId, {
                 can_send_messages: false,
                 can_send_media_messages: false,
                 can_send_polls: false,
                 can_send_other_messages: false,
                 can_invite_users: false,
-                until_date: Math.floor(endOfDay.getTime() / 1000) // Set until_date to end of current day
+                until_date: Math.floor((endOfDay.getTime() - 12600000) / 1000) // Set until_date to end of current day
             });
 
             // Create Date objects for now and tomorrow in 'Asia/Tehran' timezone
@@ -199,7 +199,7 @@ bot.on('message', async (ctx) => {
             let toMorrowTehran = new Date(endOfDay.toLocaleString('en-US', {timeZone: 'Asia/Tehran'}));
 
             // Calculate time difference in 'Asia/Tehran' timezone
-            let timeDiffTehran = toMorrowTehran.getTime() - nowTehran.getTime();
+            let timeDiffTehran = (toMorrowTehran.getTime() - 12600000) - nowTehran.getTime();
 
             // Convert milliseconds to hours, minutes, and seconds
             let hours = Math.floor(timeDiffTehran / (1000 * 60 * 60));
