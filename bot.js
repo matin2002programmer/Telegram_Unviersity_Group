@@ -71,12 +71,11 @@ bot.on('message', async (ctx) => {
 
     // Get the current date
     const now = new Date();
-    const timezoneOffset = 3.5 * 60 * 60 * 1000; // Iran time zone offset from UTC in milliseconds
-    const iranTime = new Date(now.getTime() + timezoneOffset);
+    const options = { timeZone: 'Asia/Tehran' };
 
-    const year = iranTime.getFullYear();
-    const month = String(iranTime.getMonth() + 1).padStart(2, '0');
-    const day = String(iranTime.getDate()).padStart(2, '0');
+    const year = parseInt(now.toLocaleString('en-US', { ...options, year: 'numeric' }));
+    const month = String(now.toLocaleString('en-US', { ...options, month: '2-digit' })).padStart(2, '0');
+    const day = String(now.toLocaleString('en-US', { ...options, day: '2-digit' })).padStart(2, '0');
     const today = `${year}-${month}-${day}`;
 
     let db = new sqlite3.Database('users.db', (err) => {
@@ -187,7 +186,7 @@ bot.on('message', async (ctx) => {
 
         if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
             // Remove the user's permissions to send messages in the chat
-            let endOfDay = new Date(year, iranTime.getMonth(), iranTime.getDate() + 1);
+            let endOfDay = new Date(year, now.getMonth(), now.getDate() + 1);
             await ctx.telegram.restrictChatMember(chatId, userId, {
                 can_send_messages: false,
                 can_send_media_messages: false,
