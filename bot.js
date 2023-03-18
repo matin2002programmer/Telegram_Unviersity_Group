@@ -253,6 +253,7 @@ bot.on('message', async (ctx) => {
                         can_send_other_messages: true,
                         can_invite_users: true,
                     });
+                    messageCount[chatId][today][userId] = 0;
                     // Send a confirmation message
                     if (language === "Kurdish") {
                         await ctx.reply(`هەموو دەستگەیشتنەکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) گەڕاونەتەوە باری ئاسایی خۆیان`, {parse_mode: "Markdown"});
@@ -270,7 +271,7 @@ bot.on('message', async (ctx) => {
                     can_send_other_messages: true,
                     can_invite_users: true,
                 });
-
+                messageCount[chatId][today][userId] = 0;
                 if (language === "Kurdish") {
                     await ctx.reply(`هەموو گماڕۆکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.text.match((/\d+/))[0]}) لابردران.`, {parse_mode: "Markdown"});
                 } else if (language === "Persian") {
@@ -283,7 +284,6 @@ bot.on('message', async (ctx) => {
             "\nif you want u can contact to developer :) \n\n" +
             "Developer Instagram: https://www.instagram.com/matindevilish_boy")
     }
-
 });
 
 // Start the bot
