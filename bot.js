@@ -181,7 +181,6 @@ bot.on('message', async (ctx) => {
         else if (!messageLimitEnabled) {
             return;
         }
-        console.log("Yes");
         if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
             // Remove the user's permissions to send messages in the chat
             let endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -253,12 +252,12 @@ bot.on('message', async (ctx) => {
                         can_send_other_messages: true,
                         can_invite_users: true,
                     });
-                    messageCount[chatId][today][userId] = 0;
+                    messageCount[chatId][today][ctx.message.reply_to_message.from.id] = 0;
                     // Send a confirmation message
                     if (language === "Kurdish") {
                         await ctx.reply(`هەموو دەستگەیشتنەکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) گەڕاونەتەوە باری ئاسایی خۆیان`, {parse_mode: "Markdown"});
                     } else if (language === "Persian") {
-                        await ctx.reply(`تمامی دسترسی ها برای [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) به حالت عادی بازکشت`, {parse_mode: "Markdown"});
+                        await ctx.reply(`تمامی دسترسی ها برای [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) به حالت عادی بازگشتند`, {parse_mode: "Markdown"});
                     }
                 }
             }
@@ -271,7 +270,7 @@ bot.on('message', async (ctx) => {
                     can_send_other_messages: true,
                     can_invite_users: true,
                 });
-                messageCount[chatId][today][userId] = 0;
+                messageCount[chatId][today][ctx.message.text.match((/\d+/))[0]] = 0;
                 if (language === "Kurdish") {
                     await ctx.reply(`هەموو گماڕۆکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.text.match((/\d+/))[0]}) لابردران.`, {parse_mode: "Markdown"});
                 } else if (language === "Persian") {
@@ -284,6 +283,7 @@ bot.on('message', async (ctx) => {
             "\nif you want u can contact to developer :) \n\n" +
             "Developer Instagram: https://www.instagram.com/matindevilish_boy")
     }
+
 });
 
 // Start the bot
