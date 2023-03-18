@@ -71,9 +71,10 @@ bot.on('message', async (ctx) => {
 
     // Get the current date
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const iranDateTime = new Date(now.toLocaleString('en-US', {timeZone: 'Asia/Tehran'}))
+    const year = iranDateTime.getFullYear();
+    const month = String(iranDateTime.getMonth() + 1).padStart(2, '0');
+    const day = String(iranDateTime.getDate()).padStart(2, '0');
     const today = `${year}-${month}-${day}`;
 
     let db = new sqlite3.Database('users.db', (err) => {
