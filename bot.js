@@ -14,7 +14,7 @@ let language = "Persian";
 
 bot.help(async (ctx) => {
     const member = await ctx.telegram.getChatMember(ctx.message.chat.id, ctx.message.from.id);
-    if (ctx.message.chat.id === -1001779523903) {
+    if (ctx.message.chat.id === -1001820390900) {
         if (member.status === 'creator' || member.status === 'administrator') {
             await ctx.reply([".                      توانایکانی ڕۆبات",
 "                        قابلیت های ربات",
@@ -117,7 +117,7 @@ bot.on('message', async (ctx) => {
     //     console.log('Closed the users database connection.');
     // });
 
-    if (ctx.message.chat.id === -1001779523903) {
+    if (ctx.message.chat.id === -1001820390900) {
 
         if (!messageCount[chatId]) {
             messageCount[chatId] = {};
