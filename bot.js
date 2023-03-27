@@ -1,7 +1,7 @@
 import {Telegraf} from "telegraf";
 import sqlite3 from 'sqlite3';
 
-const bot = new Telegraf('1900336365:AAGEkQjLI7z_jqs2E4IM8prXCGG9Mr2MhN4');
+const bot = new Telegraf('6087951947:AAHx3hWTQYkJS6Ac4MnNzZ6w4c3w8kmDCes');
 
 // Object to store the number of messages sent by each user in a group on a particular day
 const messageCount = {};
