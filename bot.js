@@ -120,7 +120,7 @@ bot.on('message', async (ctx) => {
     //     console.log('Closed the users database connection.');
     // });
     
-    if(ctx.message.text === "/start" && ctx.message.chat.type == "private")
+    if(ctx.message.text === "/start" && ctx.message.chat.type == "private"){
         await ctx.reply("This bot made it for ostad xzri group\nin telegram otherwise not have any action");
     }
     if (ctx.message.chat.id === -1001820390900) {
