@@ -61,6 +61,9 @@ bot.help(async (ctx) => {
 "Powered 𝑏𝑦 [𝑀𝑎𝑡𝑖𝑛](tg://user?id=498133361) 𝑤𝑖𝑡ℎ [𝑁𝑜𝑑𝑒 𝑗𝑠](https://nodejs.org)"].join("\n"), {parse_mode: "Markdown", disable_web_page_preview: true });
         }
     }
+     else if (ctx.message.chat.type == "private"){
+         await ctx.reply("This bot made it for ostad xzri group\nin telegram otherwise not have any action")
+    }
 });
 
 // Middleware to check if a user has sent more than 8 messages in a group on the same day
@@ -116,7 +119,10 @@ bot.on('message', async (ctx) => {
     //     }
     //     console.log('Closed the users database connection.');
     // });
-
+    
+    if(ctx.message.text === "/start" && ctx.message.chat.type == "private")
+        await ctx.reply("This bot made it for ostad xzri group\nin telegram otherwise not have any action");
+    }
     if (ctx.message.chat.id === -1001820390900) {
 
         if (!messageCount[chatId]) {
