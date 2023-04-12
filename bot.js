@@ -71,36 +71,35 @@ bot.help(async (ctx) => {
 
 // Middleware to check if a user has sent more than 8 messages in a group on the same day
 bot.on('message', async (ctx) => {
-    try{
-        const chatId = ctx.message.chat.id;
-        const userId = ctx.message.from.id;
-        const member = await ctx.telegram.getChatMember(chatId, userId);
+    const chatId = ctx.message.chat.id;
+    const userId = ctx.message.from.id;
+    const member = await ctx.telegram.getChatMember(chatId, userId);
 
-        // Get the current date
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}`;
+    // Get the current date
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const today = `${year}-${month}-${day}`;
 
-        let db = new sqlite3.Database('users.db', (err) => {
-            if (err) {
-                console.error(err.message);
-            }
-        });
+    let db = new sqlite3.Database('users.db', (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
 
-        // Create the users table if it doesn't exist
-        db.run(`CREATE TABLE IF NOT EXISTS users(
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT,
-          chatId INTEGER
-        )`, (err) => {
-            if (err) {
-                console.error(err.message);
-            }
-        });
-        const userName = member.user.first_name;
-        const userChatId = member.user.id;
+    // Create the users table if it doesn't exist
+    db.run(`CREATE TABLE IF NOT EXISTS users(
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT,
+      chatId INTEGER
+    )`, (err) => {
+        if (err) {
+            console.error(err.message);
+        }
+    });
+    const userName = member.user.first_name;
+    const userChatId = member.user.id;
 
     db.get(`SELECT * FROM users WHERE chatId = ?`, [userChatId], (err, row) => {
         if (err) {
@@ -116,181 +115,180 @@ bot.on('message', async (ctx) => {
         }
     });
 
-        // Close the database
-        // db.close((err) => {
-        //     if (err) {
-        //         console.error(err.message);
-        //     }
-        //     console.log('Closed the users database connection.');
-        // });
-        if (ctx.message.chat.id === -1001820390900) {
+    // Close the database
+    // db.close((err) => {
+    //     if (err) {
+    //         console.error(err.message);
+    //     }
+    //     console.log('Closed the users database connection.');
+    // });
+    if (ctx.message.chat.id === -1001820390900) {
 
-            if (!messageCount[chatId]) {
-                messageCount[chatId] = {};
-            }
+        if (!messageCount[chatId]) {
+            messageCount[chatId] = {};
+        }
 
-            if (!messageCount[chatId][today]) {
-                messageCount[chatId][today] = {};
-            }
+        if (!messageCount[chatId][today]) {
+            messageCount[chatId][today] = {};
+        }
 
-            if (!messageCount[chatId][today][userId]) {
-                messageCount[chatId][today][userId] = 1;
-            } else {
-                messageCount[chatId][today][userId]++;
-            }
+        if (!messageCount[chatId][today][userId]) {
+            messageCount[chatId][today][userId] = 1;
+        } else {
+            messageCount[chatId][today][userId]++;
+        }
 
-            // Check if the user is the group owner or an administrator
-            if (member.status === 'creator' || member.status === 'administrator') {
-                if (ctx.message.text === "ژمارەی گماڕۆکان" || ctx.message.textAlign === "تعداد محدودیت") {
-                    if (language === "Kurdish") {
-                        ctx.reply(numberLimit);
-                    } else if (language === "Persian") {
-                        ctx.reply(numberLimit);
-                    }
-                }
-                if (ctx.message.text.slice(0, 5) === "تعداد" || ctx.message.text.slice(0, 5) === "ژمارە") {
-                    try {
-                        numberLimit = ctx.message.text.match((/\d+/))[0];
-                    } catch (e) {
-                        if (e instanceof TypeError) {
-                            numberLimit = 4;
-                        }
-                    }
-                }
-                if (ctx.message.text === "زمانی کوردی") {
-                    language = "Kurdish";
-                    await ctx.reply("زمانی ڕۆبۆتەکە گۆڕدرا بۆ کوردی");
-                } else if (ctx.message.text === "زبان فارسی") {
-                    language = "Persian";
-                    await ctx.reply("زبان ربات به فارسی تغییر کرد");
-                }
-                if (ctx.message.text === "کل ایدی" || ctx.message.text === "هەموو ئایدی کان") {
-                    db.all(`SELECT * FROM users`, [], (err, rows) => {
-                        if (err) {
-                            console.error(err.message);
-                        }
-                        if (language === "Kurdish"){
-                            // const usersInfo = rows.map(row => `ناو: [${row.name}](tg://user?id=${row.chatId}) و چەت ئایدی: ${row.chatId}`);
-                            const usersInfo = rows.map(row => `ناو:${row.name} و چەت ئایدی: ${row.chatId}`);
-                            // ctx.reply(usersInfo.join('\n'), {parse_mode: "Markdown"});
-                            ctx.reply(usersInfo.join('\n'));
-                        }
-                        else if ( language === "Persian"){
-                            const usersInfo = rows.map(row => `نام: ${row.name}${row.chatId} و چت ایدی: ${row.chatId}`);
-                            ctx.reply(usersInfo.join('\n'));
-                        }
-                    });
-                }
-            }
-
-            // Check if the message limit is currently enabled
-            else if (!messageLimitEnabled) {
-                return;
-            }
-            if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
-                // Remove the user's permissions to send messages in the chat
-                let endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-                await ctx.telegram.restrictChatMember(chatId, userId, {
-                    can_send_messages: false,
-                    can_send_media_messages: false,
-                    can_send_polls: false,
-                    can_send_other_messages: false,
-                    can_invite_users: false,
-                    until_date: Math.floor((endOfDay.getTime() - 12600000) / 1000) // Set until_date to end of current day
-                });
-
-                // Create Date objects for now and tomorrow in 'Asia/Tehran' timezone
-                let nowTehran = new Date(now.toLocaleString('en-US', {timeZone: 'Asia/Tehran'}));
-                let toMorrowTehran = new Date(endOfDay.toLocaleString('en-US', {timeZone: 'Asia/Tehran'}));
-
-                // Calculate time difference in 'Asia/Tehran' timezone
-                let timeDiffTehran = (toMorrowTehran.getTime() - 12600000) - nowTehran.getTime();
-
-                // Convert milliseconds to hours, minutes, and seconds
-                let hours = Math.floor(timeDiffTehran / (1000 * 60 * 60));
-                let minutes = Math.floor((timeDiffTehran % (1000 * 60 * 60)) / (1000 * 60)) + 1;
-                // let seconds = Math.floor((timeDiffTehran % (1000 * 60)) / 1000);
-
-                // console.log(`Time remaining until tomorrow: ${hours} hours, ${minutes} minutes`);
-                const remainingTime = `${hours}:${minutes.toString().length > 1 ? minutes : `0${minutes}`}`;
-
+        // Check if the user is the group owner or an administrator
+        if (member.status === 'creator' || member.status === 'administrator') {
+            if (ctx.message.text === "ژمارەی گماڕۆکان" || ctx.message.textAlign === "تعداد محدودیت") {
                 if (language === "Kurdish") {
-                    await ctx.telegram.sendMessage(chatId, `خوێندکاری ئازیز [${member.user.first_name}](tg://user?id=${member.user.id}) تۆ ئەمڕۆ [${numberLimit}](tg://setting) نامەی خۆت ناردووە. وە بۆ ماوەی __${remainingTime}__ لە ناردنی نامە لەم کۆرە، قەدەغە دەکرێیت.`, {parse_mode: "Markdown"});
+                    ctx.reply(numberLimit);
                 } else if (language === "Persian") {
-                    await ctx.telegram.sendMessage(chatId, `دانشجوی گرامی [${member.user.first_name}](tg://user?id=${member.user.id}) شما امروز مقدار [${numberLimit}](tg://setting) پیام خود را در گروه ارسال کرده اید. و به مدت __${remainingTime}__ از فرستادن پیام در گروه محدود میگردید.`, {parse_mode: "Markdown"});
+                    ctx.reply(numberLimit);
                 }
             }
-
-            // Check if the user is the group owner or an administrator
-            if (member.status === 'creator' || member.status === 'administrator') {
-                const text = ctx.message.text.trim().toLowerCase();
-                if (text === 'محدودیت' || text === "دانانی گماڕۆکان") {
-                    messageLimitEnabled = true;
-                    if (language === "Kurdish") {
-                        await ctx.telegram.sendMessage(chatId, 'سنووری ناردنی نامە چالاک دەکرێت');
-                    } else if (language === "Persian") {
-                        await ctx.telegram.sendMessage(chatId, 'محدودیت در ارسال پیام فعال شد.');
+            if (ctx.message.text.slice(0, 5) === "تعداد" || ctx.message.text.slice(0, 5) === "ژمارە") {
+                try {
+                    numberLimit = ctx.message.text.match((/\d+/))[0];
+                } catch (e) {
+                    if (e instanceof TypeError) {
+                        numberLimit = 4;
                     }
-                } else if (text === 'لغو محدودیت' || text === "هەڵگیرانی گماڕۆکان") {
-                    if (language === "Kurdish") {
-                        await ctx.telegram.sendMessage(chatId, 'سنووردارکردنی ناردنی نامە و میدیا هەڵگیرا');
-                    } else if (language === "Persian") {
-                        messageLimitEnabled = false;
-                        await ctx.telegram.sendMessage(chatId, 'محدودیت در ارسال پیام غیر فعال شد.');
-                    }
-
                 }
             }
-            // Check if the message is a reply to a previous message
-            if (ctx.message.reply_to_message) {
-                const replyText = ctx.message.text;
-
-                // Check if the reply text is "حذف محدودیت"
-                if (replyText === 'حذف محدودیت' && ctx.message.reply_to_message || replyText === 'لاچونی گماڕۆ' && ctx.message.reply_to_message) {
-                    // Get information about the user who sent the message
-                    // Check if the user is an admin or creator of the group
-                    if (member.status === 'creator' || member.status === 'administrator') {
-                        // Remove any restrictions placed on the user
-                        await ctx.telegram.restrictChatMember(chatId, ctx.message.reply_to_message.from.id, {
-                            can_send_messages: true,
-                            can_send_media_messages: true,
-                            can_send_polls: true,
-                            can_send_other_messages: true,
-                            can_invite_users: true,
-                        });
-                        messageCount[chatId][today][ctx.message.reply_to_message.from.id] = 0;
-                        // Send a confirmation message
-                        if (language === "Kurdish") {
-                            await ctx.reply(`هەموو دەستگەیشتنەکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) گەڕاونەتەوە باری ئاسایی خۆیان`, {parse_mode: "Markdown"});
-                        } else if (language === "Persian") {
-                            await ctx.reply(`تمامی دسترسی ها برای [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) به حالت عادی بازگشتند`, {parse_mode: "Markdown"});
-                        }
+            if (ctx.message.text === "زمانی کوردی") {
+                language = "Kurdish";
+                await ctx.reply("زمانی ڕۆبۆتەکە گۆڕدرا بۆ کوردی");
+            } else if (ctx.message.text === "زبان فارسی") {
+                language = "Persian";
+                await ctx.reply("زبان ربات به فارسی تغییر کرد");
+            }
+            if (ctx.message.text === "کل ایدی" || ctx.message.text === "هەموو ئایدی کان") {
+                db.all(`SELECT * FROM users`, [], (err, rows) => {
+                    if (err) {
+                        console.error(err.message);
                     }
+                    if (language === "Kurdish"){
+                        // const usersInfo = rows.map(row => `ناو: [${row.name}](tg://user?id=${row.chatId}) و چەت ئایدی: ${row.chatId}`);
+                        const usersInfo = rows.map(row => `ناو:${row.name} و چەت ئایدی: ${row.chatId}`);
+                        // ctx.reply(usersInfo.join('\n'), {parse_mode: "Markdown"});
+                        ctx.reply(usersInfo.join('\n'));
+                    }
+                    else if ( language === "Persian"){
+                        const usersInfo = rows.map(row => `نام: ${row.name}${row.chatId} و چت ایدی: ${row.chatId}`);
+                        ctx.reply(usersInfo.join('\n'));
+                    }
+                });
+            }
+        }
+
+        // Check if the message limit is currently enabled
+        else if (!messageLimitEnabled) {
+            return;
+        }
+        if (messageCount[chatId][today][userId] >= numberLimit && member.status !== 'creator' && member.status !== 'administrator') {
+            // Remove the user's permissions to send messages in the chat
+            let endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+            await ctx.telegram.restrictChatMember(chatId, userId, {
+                can_send_messages: false,
+                can_send_media_messages: false,
+                can_send_polls: false,
+                can_send_other_messages: false,
+                can_invite_users: false,
+                until_date: Math.floor((endOfDay.getTime() - 12600000) / 1000) // Set until_date to end of current day
+            });
+
+            // Create Date objects for now and tomorrow in 'Asia/Tehran' timezone
+            let nowTehran = new Date(now.toLocaleString('en-US', {timeZone: 'Asia/Tehran'}));
+            let toMorrowTehran = new Date(endOfDay.toLocaleString('en-US', {timeZone: 'Asia/Tehran'}));
+
+            // Calculate time difference in 'Asia/Tehran' timezone
+            let timeDiffTehran = (toMorrowTehran.getTime() - 12600000) - nowTehran.getTime();
+
+            // Convert milliseconds to hours, minutes, and seconds
+            let hours = Math.floor(timeDiffTehran / (1000 * 60 * 60));
+            let minutes = Math.floor((timeDiffTehran % (1000 * 60 * 60)) / (1000 * 60)) + 1;
+            // let seconds = Math.floor((timeDiffTehran % (1000 * 60)) / 1000);
+
+            // console.log(`Time remaining until tomorrow: ${hours} hours, ${minutes} minutes`);
+            const remainingTime = `${hours}:${minutes.toString().length > 1 ? minutes : `0${minutes}`}`;
+
+            if (language === "Kurdish") {
+                await ctx.telegram.sendMessage(chatId, `خوێندکاری ئازیز [${member.user.first_name}](tg://user?id=${member.user.id}) تۆ ئەمڕۆ [${numberLimit}](tg://setting) نامەی خۆت ناردووە. وە بۆ ماوەی __${remainingTime}__ لە ناردنی نامە لەم کۆرە، قەدەغە دەکرێیت.`, {parse_mode: "Markdown"});
+            } else if (language === "Persian") {
+                await ctx.telegram.sendMessage(chatId, `دانشجوی گرامی [${member.user.first_name}](tg://user?id=${member.user.id}) شما امروز مقدار [${numberLimit}](tg://setting) پیام خود را در گروه ارسال کرده اید. و به مدت __${remainingTime}__ از فرستادن پیام در گروه محدود میگردید.`, {parse_mode: "Markdown"});
+            }
+        }
+
+        // Check if the user is the group owner or an administrator
+        if (member.status === 'creator' || member.status === 'administrator') {
+            const text = ctx.message.text.trim().toLowerCase();
+            if (text === 'محدودیت' || text === "دانانی گماڕۆکان") {
+                messageLimitEnabled = true;
+                if (language === "Kurdish") {
+                    await ctx.telegram.sendMessage(chatId, 'سنووری ناردنی نامە چالاک دەکرێت');
+                } else if (language === "Persian") {
+                    await ctx.telegram.sendMessage(chatId, 'محدودیت در ارسال پیام فعال شد.');
                 }
-            } else if (member.status === 'creator' || member.status === 'administrator') {
-                if (ctx.message.text.replace(/\d+/g, '').trim() === "حذف محدودیت" || ctx.message.text.replace(/\d+/g, '').trim() === "لاچونی گماڕۆ") {
-                    await ctx.telegram.restrictChatMember(chatId, ctx.message.text.match((/\d+/))[0], {
+            } else if (text === 'لغو محدودیت' || text === "هەڵگیرانی گماڕۆکان") {
+                if (language === "Kurdish") {
+                    await ctx.telegram.sendMessage(chatId, 'سنووردارکردنی ناردنی نامە و میدیا هەڵگیرا');
+                } else if (language === "Persian") {
+                    messageLimitEnabled = false;
+                    await ctx.telegram.sendMessage(chatId, 'محدودیت در ارسال پیام غیر فعال شد.');
+                }
+
+            }
+        }
+        // Check if the message is a reply to a previous message
+        if (ctx.message.reply_to_message) {
+            const replyText = ctx.message.text;
+
+            // Check if the reply text is "حذف محدودیت"
+            if (replyText === 'حذف محدودیت' && ctx.message.reply_to_message || replyText === 'لاچونی گماڕۆ' && ctx.message.reply_to_message) {
+                // Get information about the user who sent the message
+                // Check if the user is an admin or creator of the group
+                if (member.status === 'creator' || member.status === 'administrator') {
+                    // Remove any restrictions placed on the user
+                    await ctx.telegram.restrictChatMember(chatId, ctx.message.reply_to_message.from.id, {
                         can_send_messages: true,
                         can_send_media_messages: true,
                         can_send_polls: true,
                         can_send_other_messages: true,
                         can_invite_users: true,
                     });
-                    messageCount[chatId][today][ctx.message.text.match((/\d+/))[0]] = 0;
+                    messageCount[chatId][today][ctx.message.reply_to_message.from.id] = 0;
+                    // Send a confirmation message
                     if (language === "Kurdish") {
-                        await ctx.reply(`هەموو گماڕۆکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.text.match((/\d+/))[0]}) لابردران.`, {parse_mode: "Markdown"});
+                        await ctx.reply(`هەموو دەستگەیشتنەکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) گەڕاونەتەوە باری ئاسایی خۆیان`, {parse_mode: "Markdown"});
                     } else if (language === "Persian") {
-                        await ctx.reply(`محدودیت ها برای [${member.user.first_name}](tg://user?id=${ctx.message.text.match((/\d+/))[0]}) برداشته شدند`, {parse_mode: "Markdown"});
+                        await ctx.reply(`تمامی دسترسی ها برای [${member.user.first_name}](tg://user?id=${ctx.message.reply_to_message.from.id}) به حالت عادی بازگشتند`, {parse_mode: "Markdown"});
                     }
                 }
             }
-        } else if (ctx.message.text === "/start" && ctx.message.chat.type === "private") {
-            await ctx.telegram.sendMessage(chatId, "This bot was created for ostad\nkhzri group and can't do anything more!\n" +
-                "\nif you want u can contact to developer :) \n\n" +
-                "Developer Instagram: https://www.instagram.com/matindevilish_boy")
+        } else if (member.status === 'creator' || member.status === 'administrator') {
+            if (ctx.message.text.replace(/\d+/g, '').trim() === "حذف محدودیت" || ctx.message.text.replace(/\d+/g, '').trim() === "لاچونی گماڕۆ") {
+                await ctx.telegram.restrictChatMember(chatId, ctx.message.text.match((/\d+/))[0], {
+                    can_send_messages: true,
+                    can_send_media_messages: true,
+                    can_send_polls: true,
+                    can_send_other_messages: true,
+                    can_invite_users: true,
+                });
+                messageCount[chatId][today][ctx.message.text.match((/\d+/))[0]] = 0;
+                if (language === "Kurdish") {
+                    await ctx.reply(`هەموو گماڕۆکان بۆ [${member.user.first_name}](tg://user?id=${ctx.message.text.match((/\d+/))[0]}) لابردران.`, {parse_mode: "Markdown"});
+                } else if (language === "Persian") {
+                    await ctx.reply(`محدودیت ها برای [${member.user.first_name}](tg://user?id=${ctx.message.text.match((/\d+/))[0]}) برداشته شدند`, {parse_mode: "Markdown"});
+                }
+            }
         }
-    } catch {
-    };
+    } else if (ctx.message.text === "/start" && ctx.message.chat.type === "private") {
+        await ctx.telegram.sendMessage(chatId, "This bot was created for ostad\nkhzri group and can't do anything more!\n" +
+            "\nif you want u can contact to developer :) \n\n" +
+            "Developer Instagram: https://www.instagram.com/matindevilish_boy")
+    }
+
 });
 
 // Start the bot
