@@ -102,18 +102,19 @@ bot.on('message', async (ctx) => {
         const userName = member.user.first_name;
         const userChatId = member.user.id;
 
-        db.get(`SELECT * FROM users WHERE chatId = ?`, [userChatId], (err, row) => {
+    db.get(`SELECT * FROM users WHERE chatId = ?`, [userChatId], (err, row) => {
+        if (err) {
+            console.error(err.message);
+        } else if (row) {
+
+        } else {
+            db.run(`INSERT INTO users(name, chatId) VALUES(?, ?)`, [userName, userChatId], (err) => {
                 if (err) {
                     console.error(err.message);
-                } else if (row) {
-                    // handle case where row is found
-                } else {
-                    // handle case where row is not found
                 }
-                // do nothing if there is an error
             });
-            }
-        });
+        }
+    });
 
         // Close the database
         // db.close((err) => {
